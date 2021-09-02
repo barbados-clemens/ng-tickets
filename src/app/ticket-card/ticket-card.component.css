@@ -1,0 +1,27 @@
+:host {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    border: 1px solid var(--black);
+    border-radius: 4px;
+
+    padding: 1rem;
+    transition: box-shadow 200ms ease-in-out;
+}
+
+header {
+    display: flex;
+    align-content: center;
+    gap: 1rem;
+}
+
+:host:hover {
+    box-shadow: var(--level-1);
+}
+
+[data-state='completed'],
+[data-state='completing'] {
+    text-decoration: line-through;
+}
