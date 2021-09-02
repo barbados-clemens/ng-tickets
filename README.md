@@ -8,3 +8,5 @@
 - [ ] Better styles
 
 Time spent:  3 hours
+
+[xstate](https://xstate.js.org) for state management
