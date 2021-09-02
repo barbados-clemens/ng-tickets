@@ -1,3 +1,11 @@
+# TODO
+- [ ] Tests
+- [ ] Filtering
+- [ ] Better styles
+
+Time spent:  3 hours
+
+
 # Coding Assignment
 
 The goal of this assignment is to showcase your ability to develop features and your coding style. Due to the time
