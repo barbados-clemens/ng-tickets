@@ -1,3 +1,7 @@
+![Progress so far](./WkMac-2021.09.0850-NKgltQHP.gif)
+
+
+
 # TODO
 - [ ] Tests
 - [ ] Filtering
