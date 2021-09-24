@@ -9,14 +9,18 @@ import {MachineService} from "../machines/machine.service";
     selector: 'app-ticket-details',
     template: `
         <a routerLink="/">View All Tickets</a>
-        <ng-container *ngIf="ticketMachine$ | async as ticket; else loading;">
-            <section class="ticket" [attr.data-state]="ticket.value" [ngSwitch]="true">
+        <ng-container *ngIf="{vm: ticketMachine$ | async} as ticket; else loading;">
 
-                <h1>Ticket # {{ticket.state.context.id}}</h1>
-                <p>{{ticket.state.context.description}}</p>
+            <h1 *ngIf="!ticket.vm">Ticket Not Found</h1>
 
-                <div class="ticket__actions" *ngSwitchCase="ticket.state.matches('open')">
-                    <button (click)="ticket.send('COMPLETE')">
+            <section *ngIf="ticket.vm" class="ticket" [attr.data-state]="ticket.vm?.value" [ngSwitch]="true">
+
+                <h1>Ticket # {{ticket.vm.state.context.id}}</h1>
+                <p>{{ticket.vm.state.context.description}}</p>
+                <pre>{{ticket.vm.state | json}}</pre>
+
+                <div class="ticket__actions" *ngSwitchCase="ticket.vm.state.matches('open')">
+                    <button (click)="ticket.vm.send('COMPLETE')">
                         Complete
                     </button>
                     <select name="assignTo"
@@ -27,13 +31,13 @@ import {MachineService} from "../machines/machine.service";
                     </select>
                 </div>
 
-                <div class="ticket__actions" *ngSwitchCase="ticket.state.matches('completed')">
-                    <button (click)="ticket.send('REOPEN')">
+                <div class="ticket__actions" *ngSwitchCase="ticket.vm.state.matches('completed')">
+                    <button (click)="ticket.vm.send('REOPEN')">
                         Open
                     </button>
                 </div>
 
-                <div *ngSwitchCase="ticket.state.matches('updating') || ticket.state.matches('completing')">
+                <div *ngSwitchCase="ticket.vm.state.matches('updating') || ticket.vm.state.matches('completing')">
                     Updating...
                 </div>
             </section>
@@ -56,10 +60,12 @@ export class TicketDetailsComponent {
         .pipe(
             filter(([_, machine]) => machine?.matches('loaded')),
             map(([id, ticketsMachine]) => ticketsMachine.context.tickets.find(m => m.state.context.id === id)),
-            tap(ticket => {
-                this.userSelectControl.patchValue(
-                    ticket.state.context.assigneeId
-                )
+            tap(ticketMachine => {
+                if (ticketMachine) {
+                    this.userSelectControl.patchValue(
+                        ticketMachine.state.context.assigneeId
+                    )
+                }
             })
         )
 
@@ -75,9 +81,6 @@ export class TicketDetailsComponent {
     ) {
         this.userSelectControl.valueChanges.pipe(
             withLatestFrom(this.ticketMachine$),
-
-        tap(console.log),
-
         )
             .subscribe(([assigneeId, ticketMachine]) => {
                 ticketMachine.send({type: 'ASSIGN_TO_USER', assigneeId})

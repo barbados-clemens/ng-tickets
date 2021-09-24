@@ -1,18 +1,21 @@
 import {combineLatest, firstValueFrom, lastValueFrom} from "rxjs";
-import {assign, ContextFrom, EventFrom, spawn} from "xstate";
+import {assign, ContextFrom, EventFrom, send, spawn} from "xstate";
 import {createModel} from "xstate/lib/model";
 import {BackendService} from "../backend.service";
 import {createTicketMachine} from "./ticket.machine";
 
 const ticketsModel = createModel({
+    allTickets: [],
     tickets: [],
     users: [],
     error: undefined,
+    filterText: '',
 }, {
     events: {
         LOAD: () => ({}),
         RESET: () => ({}),
-        CREATE_TICKET: (description: string) => ({description})
+        CREATE_TICKET: (description: string) => ({description}),
+        FILTER: (filterText: string) => ({filterText})
     }
 })
 
@@ -37,9 +40,11 @@ export function createTicketsMachine(machineConfig: { services: BackendService }
                         target: 'loaded',
                         actions: assign((ctx, {data}) => {
                             const [users, tickets] = data;
+                            const allMachines = tickets.map((t) => spawn(createTicketMachine(t, machineConfig)));
                             return {
                                 users,
-                                tickets: tickets.map((t) => spawn(createTicketMachine(t, machineConfig)))
+                                tickets: allMachines,
+                                allTickets: allMachines,
                             }
 
                         })
@@ -60,6 +65,18 @@ export function createTicketsMachine(machineConfig: { services: BackendService }
                 on: {
                     CREATE_TICKET: {
                         target: 'creating',
+                    },
+                    FILTER: {
+                        target: 'loaded',
+                        actions: assign((ctx, event) => {
+                            const filteredTickets = ctx.allTickets.filter(m => m.state.context.description.includes(event.filterText))
+
+                            return {
+                                ...ctx,
+                                filterText: event.filterText,
+                                tickets: filteredTickets,
+                            }
+                        })
                     }
                 }
             },
@@ -69,11 +86,15 @@ export function createTicketsMachine(machineConfig: { services: BackendService }
                     src: 'invokeNewTicket',
                     onDone: {
                         target: 'loaded',
-                        actions: assign({
-                            tickets: (ctx, event) => {
-                                return [...ctx.tickets,  spawn(createTicketMachine(event.data, machineConfig))]
-                            }
-                        })
+                        actions: [
+                            assign({
+                                allTickets: (ctx, event) => {
+                                    return [...ctx.allTickets, spawn(createTicketMachine(event.data, machineConfig))]
+                                }
+                            }),
+                            send((ctx) => ({type: 'FILTER', filterText: ctx.filterText}))
+                        ],
+
                     },
                     onError: {
                         target: 'error',

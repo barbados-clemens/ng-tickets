@@ -31,7 +31,7 @@ export type TicketContext = ContextFrom<typeof ticketModel>
 
 
 export function createTicketMachine(ticket: Ticket, machineConfig: { services: BackendService }) {
-    console.log('creating new machine', ticket);
+
     return ticketModel.createMachine({
         id: `ticket-${ticket.id}`,
         context: {...ticketModel.initialContext, ...ticket},
@@ -48,7 +48,15 @@ export function createTicketMachine(ticket: Ticket, machineConfig: { services: B
                 invoke: {
                     id: 'update-ticket-details',
                     src: 'invokeUpdateTicket',
-                    onDone: 'open',
+                    onDone: {
+                        target: 'open',
+                        actions: assign((ctx, event) => {
+                            return {
+                                ...ctx,
+                                ...event.data,
+                            }
+                        })
+                    },
                     onError: {
                         target: 'error',
                         actions: assign({
@@ -116,7 +124,7 @@ export function createTicketMachine(ticket: Ticket, machineConfig: { services: B
                         case "COMPLETE":
                             return firstValueFrom(machineConfig.services.complete(ctx.id, false));
                         case "ASSIGN_TO_USER":
-                            return firstValueFrom(machineConfig.services.assign(ctx.id, ctx.assigneeId))
+                            return firstValueFrom(machineConfig.services.assign(ctx.id, event.assigneeId))
                         case "REOPEN":
                             return firstValueFrom(machineConfig.services.complete(ctx.id, false));
                         case "UPDATE":

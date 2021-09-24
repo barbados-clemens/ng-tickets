@@ -7,9 +7,10 @@ import {TicketContext, TicketEvent} from "../machines/ticket.machine";
     template: `
         <header>
 
-            <input type="checkbox" (click)="ticket.send(ticket.state.value === 'open' ? 'COMPLETE' : 'REOPEN')"
-                   [checked]="ticket.state.value === 'completed'">
-            <p [attr.data-state]="ticket.state.value">{{ticket.state.context.description}}</p>
+            <input type="checkbox"
+                   (click)="ticketMachine.send(ticketMachine.state.value === 'open' ? 'COMPLETE' : 'REOPEN')"
+                   [checked]="ticketMachine.state.value === 'completed'">
+            <p [attr.data-state]="ticketMachine.state.value">{{ticketMachine.state.context.description}}</p>
         </header>
 
         <ng-content></ng-content>
@@ -19,7 +20,7 @@ import {TicketContext, TicketEvent} from "../machines/ticket.machine";
 })
 export class TicketCardComponent {
 
-    @Input() ticket: Interpreter<TicketContext, any, TicketEvent>
+    @Input() ticketMachine: Interpreter<TicketContext, any, TicketEvent>
 
     constructor() {
     }

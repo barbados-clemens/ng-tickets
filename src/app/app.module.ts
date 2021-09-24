@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {ReactiveFormsModule} from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {BrowserModule} from '@angular/platform-browser';
 import {AppRoutingModule} from "./app-routing.module";
 import {AppComponent} from './app.component';
@@ -17,6 +17,7 @@ import {TicketsListComponent} from "./tickets-list/tickets-list.component";
         AppRoutingModule,
         TicketCardModule,
         ReactiveFormsModule,
+        FormsModule,
     ],
     providers: [BackendService],
     bootstrap: [AppComponent]

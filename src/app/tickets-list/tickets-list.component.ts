@@ -8,12 +8,19 @@ import {MachineService} from "../machines/machine.service";
         <section class="ticket-list">
             <h1>Tickets</h1>
             <ng-container *ngIf="state$ | async as state;">
-                <ng-container [ngSwitch]="true">
 
+                <label>
+                    Search:
+                    <input type="search" [ngModel]="state.context.filterText" (ngModelChange)="filterChange($event)">
+                </label>
+
+                <ng-container [ngSwitch]="true">
                     <ng-container *ngSwitchCase="state.matches('loaded') || state.matches('creating')">
-                        <app-ticket-card *ngFor="let t of state.context.tickets;" [ticket]="t">
-                            <a [routerLink]="['ticket', t.state.context.id]">View Details</a>
-                        </app-ticket-card>
+                        <ng-container *ngFor="let t of state.context.tickets;">
+                            <app-ticket-card [ticketMachine]="t">
+                                <a [routerLink]="['ticket', t.state.context.id]">View Details</a>
+                            </app-ticket-card>
+                        </ng-container>
                     </ng-container>
 
                     <p *ngSwitchCase="state.matches('loading')">Loading...</p>
@@ -44,5 +51,9 @@ export class TicketsListComponent {
     addTicket(description: string): void {
         this.machineService.send({type: 'CREATE_TICKET', description})
         this.newTicketControl.reset();
+    }
+
+    filterChange(filterText: string) {
+        this.machineService.send({type: 'FILTER', filterText})
     }
 }

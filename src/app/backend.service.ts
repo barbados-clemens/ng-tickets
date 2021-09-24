@@ -79,7 +79,7 @@ export class BackendService {
 
     this.storedTickets = this.storedTickets.concat(newTicket);
 
-    return of(newTicket).pipe(delay(randomDelay()));
+    return of(newTicket).pipe(delay(10000));
   }
 
   assign(ticketId: number, userId: number) {
